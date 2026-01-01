@@ -191,7 +191,14 @@ export async function removeBackgroundBiRefNet(canvas: HTMLCanvasElement, server
 export async function checkBiRefNet(serverUrl: string): Promise<{ status: string; model: string }> {
   const base = serverUrl.trim();
   const root = base.endsWith("/remove-bg") ? base.replace(/\/remove-bg$/, "") : base.replace(/\/$/, "");
-  const r = await fetch(`${root}/health`, { method: "GET" });
-  if (!r.ok) throw new Error(`BiRefNet health ${r.status}`);
-  return await r.json();
+  try {
+    const r = await fetch(`${root}/health`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" } // Ensure we ask for JSON (though GET usually ignores)
+    });
+    if (!r.ok) throw new Error(`Status ${r.status}: ${r.statusText}`);
+    return await r.json();
+  } catch (e: any) {
+    throw new Error(`Falha na conexão com backend (${serverUrl}): ${e.message}`);
+  }
 }
