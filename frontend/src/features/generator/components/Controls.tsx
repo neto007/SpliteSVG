@@ -1,7 +1,8 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { LogoOptions, CollectionItem, CollectionImportData } from '../../../types';
 import { Button } from '../../../components/ui/Button';
+import { getStylePrompts } from '../services/promptService';
 import { Shield, Zap, Type, Circle, Palette, AlignLeft, User, LayoutGrid, FileText, Eraser, Plus, Trash2, Layers, ScanFace, PersonStanding, Component, Upload, Cpu, Sparkles, FileJson, Boxes, Sword, Binary, Chrome, PlayCircle, Ghost, Contact, Image as ImageIcon, X, Grid3X3, Move } from 'lucide-react';
 
 interface ControlsProps {
@@ -38,6 +39,24 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
     'DETALHE / CLOSE-UP (ROSTO)'
   ]);
   const [newView, setNewView] = useState('');
+
+  // Styles Logic
+  const [availableStyles, setAvailableStyles] = useState<string[]>([]);
+  useEffect(() => {
+    const prompts = getStylePrompts();
+    setAvailableStyles(Object.keys(prompts));
+  }, []);
+
+  const STYLE_ICONS: Record<string, any> = {
+    mascot: Zap,
+    minimalist: Circle,
+    badge: Shield,
+    cyber: Binary,
+    fantasy: Sword,
+    glossy: Chrome,
+    typography: Type,
+    monogram: Boxes,
+  };
 
   const [collectionItems, setCollectionItems] = useState<CollectionItem[]>([
     { id: '1', subject: '', description: '' },
@@ -182,21 +201,16 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
         <div className="space-y-4">
           <label className="text-[10px] font-bold text-gray-400 mb-1 uppercase block tracking-widest">Estilo & Cores</label>
           <div className="grid grid-cols-4 gap-2">
-            {[
-              { id: 'mascot', icon: Zap, label: 'Mascote' },
-              { id: 'minimalist', icon: Circle, label: 'Minimal' },
-              { id: 'badge', icon: Shield, label: 'Brasão' },
-              { id: 'cyber', icon: Binary, label: 'Cyber' },
-              { id: 'fantasy', icon: Sword, label: 'Épico' },
-              { id: 'glossy', icon: Chrome, label: 'Glossy' },
-              { id: 'typography', icon: Type, label: 'Texto' },
-              { id: 'monogram', icon: Boxes, label: 'Mono' }
-            ].map(opt => (
-              <button key={opt.id} type="button" onClick={() => setStyle(opt.id as any)} className={`flex flex-col items-center p-2 rounded-lg border transition-all ${style === opt.id ? 'bg-esport-accent/10 border-esport-accent text-white shadow-[0_0_10px_rgba(0,255,157,0.2)]' : 'bg-esport-black border-gray-800 text-gray-500 hover:border-gray-700'}`}>
-                <opt.icon className={`w-4 h-4 mb-1 ${style === opt.id ? 'text-esport-accent' : ''}`} />
-                <span className="text-[8px] font-bold uppercase leading-none">{opt.label}</span>
-              </button>
-            ))}
+            {availableStyles.map(key => {
+              const Icon = STYLE_ICONS[key] || Sparkles;
+              const label = key.charAt(0).toUpperCase() + key.slice(1);
+              return (
+                <button key={key} type="button" onClick={() => setStyle(key as any)} className={`flex flex-col items-center p-2 rounded-lg border transition-all ${style === key ? 'bg-esport-accent/10 border-esport-accent text-white shadow-[0_0_10px_rgba(0,255,157,0.2)]' : 'bg-esport-black border-gray-800 text-gray-500 hover:border-gray-700'}`}>
+                  <Icon className={`w-4 h-4 mb-1 ${style === key ? 'text-esport-accent' : ''}`} />
+                  <span className="text-[8px] font-bold uppercase leading-none truncate w-full text-center">{label}</span>
+                </button>
+              )
+            })}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -226,8 +240,8 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
               <label className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest flex items-center gap-2">
                 <Grid3X3 className="w-3 h-3" /> Layout da Grade
               </label>
-              <div className="grid grid-cols-5 gap-2">
-                {['1x2', '2x2', '3x4', '4x3', '4x4'].map((size) => (
+              <div className="grid grid-cols-4 gap-2">
+                {['1x1', '2x2', '3x3', '3x4', '4x3', '4x4', '4x5', '5x4'].map((size) => (
                   <button
                     key={size}
                     type="button"
@@ -337,6 +351,27 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
           </div>
         ) : (
           <div className="space-y-4">
+
+            {/* Grid Size Selection */}
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest flex items-center gap-2">
+                <Grid3X3 className="w-3 h-3" /> Layout da Grade
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {['1x1', '2x2', '3x3', '3x4', '4x3', '4x4', '4x5', '5x4'].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setGridSize(size)}
+                    className={`py-1.5 text-[9px] font-bold rounded border transition-all ${gridSize === size ? 'bg-esport-accent/20 border-esport-accent text-white' : 'bg-esport-black border-gray-800 text-gray-500 hover:border-gray-700'
+                      }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex justify-between items-center px-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Itens da Coleção</label>
               <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[10px] font-bold text-esport-accent hover:text-white transition-colors uppercase"><FileJson className="w-3 h-3" /> Importar JSON</button>

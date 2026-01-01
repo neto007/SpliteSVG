@@ -8,6 +8,7 @@ import { Gamepad2, Key, Info, ExternalLink, ShieldCheck } from 'lucide-react';
 import { Button } from './components/ui/Button';
 import { LogoExtractor } from './features/extractor/components/LogoExtractor';
 import { ApiKeyModal } from './components/ui/ApiKeyModal';
+import { PromptEditor } from './features/generator/components/PromptEditor';
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<GeneratorStatus>(GeneratorStatus.IDLE);
@@ -117,7 +118,7 @@ const App: React.FC = () => {
     }
   };
 
-  const [view, setView] = useState<'generator' | 'extractor'>('generator');
+  const [view, setView] = useState<'generator' | 'extractor' | 'prompts'>('generator');
 
   return (
     <div className="min-h-screen bg-esport-black text-white font-sans selection:bg-esport-accent selection:text-esport-black">
@@ -148,6 +149,12 @@ const App: React.FC = () => {
                 className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${view === 'extractor' ? 'bg-esport-accent text-black' : 'bg-gray-800 text-gray-300'}`}
               >
                 Extractor
+              </button>
+              <button
+                onClick={() => setView('prompts')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${view === 'prompts' ? 'bg-esport-accent text-black' : 'bg-gray-800 text-gray-300'}`}
+              >
+                Prompts
               </button>
             </div>
             <div className={`px-3 py-1 rounded-full border text-[10px] font-bold uppercase flex items-center gap-2 ${apiKeySelected ? 'border-esport-accent text-esport-accent' : 'border-gray-700 text-gray-500'}`}>
@@ -199,8 +206,10 @@ const App: React.FC = () => {
               />
             </div>
           </div>
-        ) : (
+        ) : view === 'extractor' ? (
           <LogoExtractor initialFile={extractorImage} />
+        ) : (
+          <PromptEditor />
         )}
       </main>
     </div>

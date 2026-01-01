@@ -1,0 +1,30 @@
+services:
+  backend:
+    build: 
+      context: ./backend
+    container_name: splitesvg-backend
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    # Uncomment the following section to enable GPU support (requires NVIDIA Container Toolkit)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  frontend:
+    build: 
+      context: ./frontend
+    container_name: splitesvg-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+

@@ -2,6 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 import { LogoOptions } from "../../../types";
 
+import { getStylePrompts } from "./promptService";
+
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const getClient = (apiKey?: string) => {
@@ -14,16 +16,7 @@ const getClient = (apiKey?: string) => {
 export const generateEsportsLogo = async (options: LogoOptions, apiKey?: string, retryCount = 0): Promise<string> => {
   const ai = getClient(apiKey);
 
-  const styleKeywords = {
-    mascot: "aggressive vector mascot, thick bold contour, professional esports shading, animal head logo",
-    minimalist: "ultra-clean vector icon, flat geometric design, modern minimalist aesthetic, simplified shapes",
-    badge: "shield emblem, detailed crest, varsity championship badge, traditional sports shield",
-    typography: "extreme stylized team lettering, sharp razor angles, custom esports font type",
-    monogram: "professional interlocking letters, geometric initials, symmetrical typography design, luxury esports branding",
-    cyber: "cyberpunk futuristic aesthetic, neon circuits, high-tech glitch effects, sci-fi geometric vectors",
-    fantasy: "medieval rpg theme, ornate heraldry, magical glow, fantasy weaponry and scrolls, epic heraldic art",
-    glossy: "3D render style, glossy plastic/metal finish, high-end highlights and shadows, mobile game logo style"
-  };
+  const styleKeywords = getStylePrompts();
 
   const selectedStyle = styleKeywords[options.style];
   const compositionPrompt = {
