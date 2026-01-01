@@ -102,6 +102,21 @@ const App: React.FC = () => {
     setErrorMessage(null);
   };
 
+  const [extractorImage, setExtractorImage] = useState<File | null>(null);
+
+  const handleSendToExtractor = async (img: GeneratedImage) => {
+    try {
+      const response = await fetch(img.url);
+      const blob = await response.blob();
+      const file = new File([blob], `generated-logo-${img.id}.png`, { type: blob.type });
+      setExtractorImage(file);
+      setView('extractor');
+    } catch (e) {
+      console.error("Failed to transfer image:", e);
+      setErrorMessage("Erro ao enviar imagem para o extrator.");
+    }
+  };
+
   const [view, setView] = useState<'generator' | 'extractor'>('generator');
 
   return (
@@ -180,11 +195,12 @@ const App: React.FC = () => {
                 history={history}
                 onSelectImage={handleSelectHistory}
                 errorMessage={errorMessage}
+                onSendToExtractor={handleSendToExtractor}
               />
             </div>
           </div>
         ) : (
-          <LogoExtractor />
+          <LogoExtractor initialFile={extractorImage} />
         )}
       </main>
     </div>

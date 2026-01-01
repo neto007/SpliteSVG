@@ -21,9 +21,14 @@ const GRID_OPTIONS = [
   "5x4 (20 logos)",
   "4x5 (20 logos)",
   "2x2 (4 logos)",
+  "1x1 (1 logo)",
 ];
 
-export const LogoExtractor: React.FC = () => {
+interface LogoExtractorProps {
+  initialFile?: File | null;
+}
+
+export const LogoExtractor: React.FC<LogoExtractorProps> = ({ initialFile }) => {
   const [file, setFile] = useState<File | null>(null);
   const [grid, setGrid] = useState<string>("4x4 (16 logos)");
   const [trim, setTrim] = useState(true);
@@ -37,6 +42,12 @@ export const LogoExtractor: React.FC = () => {
   const [viewerName, setViewerName] = useState<string>("");
   const [birefnetUrl, setBirefnetUrl] = useState<string>("/api");
   const [isDragging, setIsDragging] = useState(false);
+
+  React.useEffect(() => {
+    if (initialFile) {
+      setFile(initialFile);
+    }
+  }, [initialFile]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
