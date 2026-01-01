@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Controls } from './components/Controls';
-import { Preview } from './components/Preview';
-import { generateEsportsLogo, generateLogoCollection, generateCharacterSheet } from './services/geminiService';
+import { Controls } from './features/generator/components/Controls';
+import { Preview } from './features/generator/components/Preview';
+import { generateEsportsLogo, generateLogoCollection, generateCharacterSheet } from './features/generator/services/geminiService';
 import { GeneratedImage, GeneratorStatus, LogoOptions } from './types';
 import { Gamepad2, Key, Info, ExternalLink, ShieldCheck } from 'lucide-react';
-import { Button } from './components/Button';
-import { LogoExtractor } from './components/LogoExtractor';
-import { ApiKeyModal } from './components/ApiKeyModal';
+import { Button } from './components/ui/Button';
+import { LogoExtractor } from './features/extractor/components/LogoExtractor';
+import { ApiKeyModal } from './components/ui/ApiKeyModal';
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<GeneratorStatus>(GeneratorStatus.IDLE);

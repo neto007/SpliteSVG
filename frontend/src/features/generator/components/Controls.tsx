@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
-import { LogoOptions, CollectionItem, CollectionImportData } from '../types';
-import { Button } from './Button';
+import { LogoOptions, CollectionItem, CollectionImportData } from '../../../types';
+import { Button } from '../../../components/ui/Button';
 import { Shield, Zap, Type, Circle, Palette, AlignLeft, User, LayoutGrid, FileText, Eraser, Plus, Trash2, Layers, ScanFace, PersonStanding, Component, Upload, Cpu, Sparkles, FileJson, Boxes, Sword, Binary, Chrome, PlayCircle, Ghost, Contact, Image as ImageIcon, X, Grid3X3, Move } from 'lucide-react';
 
 interface ControlsProps {
@@ -16,7 +16,7 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
   const fileInputRef = useRef<HTMLInputElement>(null);
   const refImageInputRef = useRef<HTMLInputElement>(null);
   const poseImageInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [details, setDetails] = useState('');
   const [theme, setTheme] = useState('');
   const [style, setStyle] = useState<LogoOptions['style']>('mascot');
@@ -104,9 +104,9 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const baseOptions = { 
-      details, 
-      theme: theme || 'Cores vibrantes de eSports', 
+    const baseOptions = {
+      details,
+      theme: theme || 'Cores vibrantes de eSports',
       style,
       composition: activeTab === 'characterSheet' ? 'body' : composition,
       noBackground,
@@ -131,7 +131,7 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
 
   return (
     <div className="bg-esport-dark p-6 rounded-xl border border-gray-800 shadow-2xl h-fit space-y-6">
-      
+
       {/* Model Selector */}
       <div>
         <label className="text-[10px] font-bold text-esport-accent mb-2 uppercase tracking-widest flex items-center gap-2">
@@ -159,9 +159,8 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
                 key={res}
                 type="button"
                 onClick={() => setResolution(res)}
-                className={`py-1.5 text-[10px] font-black rounded border transition-all ${
-                  resolution === res ? 'bg-white text-black border-white' : 'bg-transparent text-gray-500 border-gray-800'
-                }`}
+                className={`py-1.5 text-[10px] font-black rounded border transition-all ${resolution === res ? 'bg-white text-black border-white' : 'bg-transparent text-gray-500 border-gray-800'
+                  }`}
               >
                 {res}
               </button>
@@ -178,7 +177,7 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        
+
         {/* Universal Settings Section */}
         <div className="space-y-4">
           <label className="text-[10px] font-bold text-gray-400 mb-1 uppercase block tracking-widest">Estilo & Cores</label>
@@ -201,7 +200,7 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-             <div>
+            <div>
               <label className="text-[10px] font-bold text-gray-400 mb-1 uppercase block">Tema de Cores</label>
               <input type="text" value={theme} onChange={e => setTheme(e.target.value)} placeholder="Ex: Roxo Elétrico..." className="w-full bg-esport-black border border-gray-700 rounded p-1.5 text-[10px] outline-none focus:border-esport-accent" />
             </div>
@@ -209,9 +208,9 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
               <label className="text-[10px] font-bold text-gray-400 mb-1 uppercase block">Composição</label>
               <div className="flex gap-1 bg-esport-black p-1 rounded border border-gray-700">
                 {(['head', 'body', 'symbol'] as const).map(comp => (
-                   <button key={comp} type="button" disabled={activeTab === 'characterSheet'} onClick={() => setComposition(comp)} className={`flex-1 py-1 text-[8px] font-bold uppercase rounded ${composition === comp || (activeTab === 'characterSheet' && comp === 'body') ? 'bg-gray-800 text-white' : 'text-gray-500'} disabled:opacity-30`}>
-                     {comp === 'head' ? 'Cab' : comp === 'body' ? 'Corp' : 'Simb'}
-                   </button>
+                  <button key={comp} type="button" disabled={activeTab === 'characterSheet'} onClick={() => setComposition(comp)} className={`flex-1 py-1 text-[8px] font-bold uppercase rounded ${composition === comp || (activeTab === 'characterSheet' && comp === 'body') ? 'bg-gray-800 text-white' : 'text-gray-500'} disabled:opacity-30`}>
+                    {comp === 'head' ? 'Cab' : comp === 'body' ? 'Corp' : 'Simb'}
+                  </button>
                 ))}
               </div>
             </div>
@@ -221,7 +220,7 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
         {/* Tab-specific Content */}
         {activeTab === 'characterSheet' ? (
           <div className="space-y-4 border-t border-gray-800 pt-4 animate-in fade-in slide-in-from-bottom-2">
-            
+
             {/* Grid Size Selection */}
             <div>
               <label className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest flex items-center gap-2">
@@ -233,9 +232,8 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
                     key={size}
                     type="button"
                     onClick={() => setGridSize(size)}
-                    className={`py-1.5 text-[9px] font-bold rounded border transition-all ${
-                      gridSize === size ? 'bg-esport-accent/20 border-esport-accent text-white' : 'bg-esport-black border-gray-800 text-gray-500 hover:border-gray-700'
-                    }`}
+                    className={`py-1.5 text-[9px] font-bold rounded border transition-all ${gridSize === size ? 'bg-esport-accent/20 border-esport-accent text-white' : 'bg-esport-black border-gray-800 text-gray-500 hover:border-gray-700'
+                      }`}
                   >
                     {size}
                   </button>
@@ -251,8 +249,8 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
                   <ImageIcon className="w-3 h-3" /> Design Base
                 </label>
                 {!referenceImage ? (
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => refImageInputRef.current?.click()}
                     className="w-full h-20 border border-dashed border-gray-800 rounded flex flex-col items-center justify-center text-gray-600 hover:border-esport-accent transition-all"
                   >
@@ -274,8 +272,8 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
                   <Move className="w-3 h-3" /> Ref. de Pose
                 </label>
                 {!poseImage ? (
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => poseImageInputRef.current?.click()}
                     className="w-full h-20 border border-dashed border-gray-800 rounded flex flex-col items-center justify-center text-gray-600 hover:border-esport-secondary transition-all"
                   >
@@ -298,7 +296,7 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
                 <span>Vistas do Turnaround</span>
                 <span className="text-esport-accent">{customViews.length} Painéis</span>
               </label>
-              
+
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {customViews.map((view, idx) => (
                   <div key={idx} className="flex items-center gap-1 px-2 py-0.5 bg-esport-black border border-gray-800 rounded text-[8px] font-bold text-gray-400">
@@ -309,11 +307,11 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
               </div>
 
               <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={newView} 
+                <input
+                  type="text"
+                  value={newView}
                   onChange={e => setNewView(e.target.value)}
-                  placeholder="Nova vista (ex: Pulo)" 
+                  placeholder="Nova vista (ex: Pulo)"
                   className="flex-1 bg-esport-black border border-gray-700 rounded p-1.5 text-[10px] outline-none focus:border-esport-accent"
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomView())}
                 />
@@ -323,11 +321,11 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
 
             <div className="space-y-3">
               <label className="text-[10px] font-bold text-gray-400 uppercase block tracking-widest">Descrição do Personagem</label>
-              <input 
-                type="text" 
-                value={singleSubject} 
-                onChange={e => setSingleSubject(e.target.value)} 
-                placeholder="Ex: Ninja Cibernético de Elite" 
+              <input
+                type="text"
+                value={singleSubject}
+                onChange={e => setSingleSubject(e.target.value)}
+                placeholder="Ex: Ninja Cibernético de Elite"
                 className="w-full bg-esport-black border border-gray-700 rounded p-3 text-sm font-bold outline-none focus:border-esport-accent"
               />
             </div>
@@ -347,12 +345,12 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
             <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-800">
               {collectionItems.map((item, idx) => (
                 <div key={item.id} className="flex gap-2 items-center bg-esport-black p-2 rounded border border-gray-800 group">
-                  <span className="text-[9px] text-gray-600 font-bold w-4">{idx+1}</span>
-                  <input type="text" value={item.subject} onChange={e => setCollectionItems(collectionItems.map(i => i.id === item.id ? {...i, subject: e.target.value} : i))} placeholder="Elemento (ex: Ninja)" className="flex-1 bg-transparent border-none text-xs outline-none focus:text-esport-accent font-bold" />
+                  <span className="text-[9px] text-gray-600 font-bold w-4">{idx + 1}</span>
+                  <input type="text" value={item.subject} onChange={e => setCollectionItems(collectionItems.map(i => i.id === item.id ? { ...i, subject: e.target.value } : i))} placeholder="Elemento (ex: Ninja)" className="flex-1 bg-transparent border-none text-xs outline-none focus:text-esport-accent font-bold" />
                   <button type="button" onClick={() => setCollectionItems(collectionItems.filter(i => i.id !== item.id))} className="text-gray-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-3 h-3" /></button>
                 </div>
               ))}
-              <button type="button" onClick={() => setCollectionItems([...collectionItems, {id: crypto.randomUUID(), subject: '', description: ''}])} className="w-full py-2 text-[9px] font-bold uppercase text-gray-500 border border-dashed border-gray-700 rounded hover:border-esport-accent hover:text-esport-accent transition-all"><Plus className="w-3 h-3 inline mr-1" /> Adicionar Item</button>
+              <button type="button" onClick={() => setCollectionItems([...collectionItems, { id: crypto.randomUUID(), subject: '', description: '' }])} className="w-full py-2 text-[9px] font-bold uppercase text-gray-500 border border-dashed border-gray-700 rounded hover:border-esport-accent hover:text-esport-accent transition-all"><Plus className="w-3 h-3 inline mr-1" /> Adicionar Item</button>
             </div>
           </div>
         )}

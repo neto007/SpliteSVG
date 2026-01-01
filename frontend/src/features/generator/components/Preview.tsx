@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { GeneratedImage, GeneratorStatus } from '../types';
+import { GeneratedImage, GeneratorStatus } from '../../../types';
 import { Download, Sparkles, AlertCircle, LayoutGrid, MonitorCheck, PlayCircle, Contact } from 'lucide-react';
-import { Button } from './Button';
+import { Button } from '../../../components/ui/Button';
 
 interface PreviewProps {
   status: GeneratorStatus;

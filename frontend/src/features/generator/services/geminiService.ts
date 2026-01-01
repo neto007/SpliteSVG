@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { LogoOptions } from "../types";
+import { LogoOptions } from "../../../types";
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
