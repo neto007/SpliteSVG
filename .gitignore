@@ -5,5 +5,6 @@ dist/
 .birefnet.pid
 __pycache__/
 .venv/
+venv/
 .env
 *.zip
