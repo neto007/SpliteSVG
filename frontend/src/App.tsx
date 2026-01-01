@@ -1,14 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Controls } from './features/generator/components/Controls';
 import { Preview } from './features/generator/components/Preview';
 import { generateEsportsLogo, generateLogoCollection, generateCharacterSheet } from './features/generator/services/geminiService';
 import { GeneratedImage, GeneratorStatus, LogoOptions } from './types';
-import { Gamepad2, Key, Info, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Gamepad2, Key, Info, ExternalLink, ShieldCheck, Loader2 } from 'lucide-react';
 import { Button } from './components/ui/Button';
-import { LogoExtractor } from './features/extractor/components/LogoExtractor';
 import { ApiKeyModal } from './components/ui/ApiKeyModal';
-import { PromptEditor } from './features/generator/components/PromptEditor';
+
+// Lazy Load heavy components
+const LogoExtractor = React.lazy(() => import('./features/extractor/components/LogoExtractor').then(module => ({ default: module.LogoExtractor })));
+const PromptEditor = React.lazy(() => import('./features/generator/components/PromptEditor').then(module => ({ default: module.PromptEditor })));
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<GeneratorStatus>(GeneratorStatus.IDLE);
@@ -175,42 +177,49 @@ const App: React.FC = () => {
           onSave={handleSaveKey}
           currentKey={userApiKey}
         />
-        {view === 'generator' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-4">
-              <Controls
-                onGenerate={handleGenerate}
-                isGenerating={status === GeneratorStatus.LOADING}
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-              />
-
-              {selectedModel === 'gemini-3-pro-image-preview' && !apiKeySelected && (
-                <div className="mt-4 p-4 rounded-lg bg-orange-950/20 border border-orange-900/40 text-[10px] text-orange-200 animate-pulse">
-                  <p className="font-bold flex items-center gap-2 mb-1">
-                    <Info className="w-3 h-3" /> ATENÇÃO
-                  </p>
-                  O modelo Pro exige uma chave de API própria. Clique no ícone de chave acima para configurar.
-                </div>
-              )}
-            </div>
-
-            <div className="lg:col-span-8">
-              <Preview
-                status={status}
-                currentImages={currentImages}
-                history={history}
-                onSelectImage={handleSelectHistory}
-                errorMessage={errorMessage}
-                onSendToExtractor={handleSendToExtractor}
-              />
-            </div>
+        <Suspense fallback={
+          <div className="flex flex-col items-center justify-center p-20 animate-in fade-in">
+            <Loader2 className="w-10 h-10 text-esport-accent animate-spin mb-4" />
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Carregando Módulo...</p>
           </div>
-        ) : view === 'extractor' ? (
-          <LogoExtractor initialFile={extractorImage} />
-        ) : (
-          <PromptEditor />
-        )}
+        }>
+          {view === 'generator' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-4">
+                <Controls
+                  onGenerate={handleGenerate}
+                  isGenerating={status === GeneratorStatus.LOADING}
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                />
+
+                {selectedModel === 'gemini-3-pro-image-preview' && !apiKeySelected && (
+                  <div className="mt-4 p-4 rounded-lg bg-orange-950/20 border border-orange-900/40 text-[10px] text-orange-200 animate-pulse">
+                    <p className="font-bold flex items-center gap-2 mb-1">
+                      <Info className="w-3 h-3" /> ATENÇÃO
+                    </p>
+                    O modelo Pro exige uma chave de API própria. Clique no ícone de chave acima para configurar.
+                  </div>
+                )}
+              </div>
+
+              <div className="lg:col-span-8">
+                <Preview
+                  status={status}
+                  currentImages={currentImages}
+                  history={history}
+                  onSelectImage={handleSelectHistory}
+                  errorMessage={errorMessage}
+                  onSendToExtractor={handleSendToExtractor}
+                />
+              </div>
+            </div>
+          ) : view === 'extractor' ? (
+            <LogoExtractor initialFile={extractorImage} />
+          ) : (
+            <PromptEditor />
+          )}
+        </Suspense>
       </main>
     </div>
   );

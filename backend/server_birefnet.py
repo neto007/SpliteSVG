@@ -2,9 +2,15 @@ from fastapi import FastAPI, UploadFile, File, Response
 from fastapi.middleware.cors import CORSMiddleware
 from rembg import remove, new_session
 import uvicorn
-
 import onnxruntime as ort
 import os
+import gc
+
+# Optional torch import for VRAM clearing
+try:
+    import torch
+except ImportError:
+    torch = None
 
 # Check available providers
 available_providers = ort.get_available_providers()
@@ -21,6 +27,7 @@ else:
 providers.append("CPUExecutionProvider") # Fallback
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,19 +36,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-session = new_session("birefnet-general", providers=providers)
+# NOTE: Global session removed to save VRAM.
+# session = new_session("birefnet-general", providers=providers)
 
 @app.post("/remove-bg")
 async def remove_bg(image: UploadFile = File(...)):
-    data = await image.read()
-    out = remove(data, session=session)
-    return Response(content=out, media_type="image/png")
+    session = None
+    try:
+        print("🔄 Loading model session (On-Demand)...")
+        # Initialize session for this request only
+        session = new_session("birefnet-general", providers=providers)
+        
+        data = await image.read()
+        print("⚡ Processing image...")
+        out = remove(data, session=session)
+        print("✅ Processing complete.")
+        return Response(content=out, media_type="image/png")
+    
+    except Exception as e:
+        print(f"❌ Error processing image: {e}")
+        return Response(content=str(e), status_code=500)
+    
+    finally:
+        print("🧹 Cleaning up VRAM...")
+        # Force cleanup
+        if session:
+            del session
+        
+        # Force Garbage Collection
+        gc.collect()
+        
+        # Clear CUDA Cache if available
+        if torch and torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            print("✨ CUDA Cache cleared.")
+        
+        print("✨ VRAM Cleanup done.")
 
 @app.get("/health")
 async def health():
     return {
         "status": "ok", 
-        "model": "birefnet-general", 
+        "model": "birefnet-general (on-demand)", 
         "device": device,
         "providers": providers
     }

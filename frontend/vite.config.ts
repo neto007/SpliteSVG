@@ -28,6 +28,17 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       }
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            ui: ['lucide-react'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 1000,
     }
   };
 });
