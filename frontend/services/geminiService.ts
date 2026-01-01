@@ -4,8 +4,15 @@ import { LogoOptions } from "../types";
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const generateEsportsLogo = async (options: LogoOptions, retryCount = 0): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getClient = (apiKey?: string) => {
+  // Priority: Argument > LocalStorage > internal fallback/env
+  const key = apiKey || (typeof window !== 'undefined' ? localStorage.getItem("GEMINI_API_KEY") : undefined) || process.env.API_KEY;
+  // Note: process.env.API_KEY might be defined by Vite
+  return new GoogleGenAI({ apiKey: key });
+};
+
+export const generateEsportsLogo = async (options: LogoOptions, apiKey?: string, retryCount = 0): Promise<string> => {
+  const ai = getClient(apiKey);
 
   const styleKeywords = {
     mascot: "aggressive vector mascot, thick bold contour, professional esports shading, animal head logo",
@@ -48,7 +55,7 @@ export const generateEsportsLogo = async (options: LogoOptions, retryCount = 0):
 
   try {
     const isPro = options.model === 'gemini-3-pro-image-preview';
-    
+
     const response = await ai.models.generateContent({
       model: options.model,
       contents: { parts: [{ text: prompt }] },
@@ -63,7 +70,7 @@ export const generateEsportsLogo = async (options: LogoOptions, retryCount = 0):
 
     const candidate = response.candidates?.[0];
     if (candidate?.finishReason === 'SAFETY') throw new Error("Bloqueado pelo filtro de segurança da IA. Tente outro tema.");
-    
+
     const parts = candidate?.content?.parts;
     if (!parts) throw new Error("Resposta vazia do modelo.");
 
@@ -77,14 +84,14 @@ export const generateEsportsLogo = async (options: LogoOptions, retryCount = 0):
   } catch (error: any) {
     if (error.message?.includes("429") && retryCount < 1) {
       await delay(2000);
-      return generateEsportsLogo(options, retryCount + 1);
+      return generateEsportsLogo(options, apiKey, retryCount + 1);
     }
     throw error;
   }
 };
 
-export const generateLogoCollection = async (requests: LogoOptions[]): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const generateLogoCollection = async (requests: LogoOptions[], apiKey?: string): Promise<string> => {
+  const ai = getClient(apiKey);
   const count = requests.length;
   const cols = Math.ceil(Math.sqrt(count));
   const rows = Math.ceil(count / cols);
@@ -120,8 +127,8 @@ export const generateLogoCollection = async (requests: LogoOptions[]): Promise<s
   } catch (error: any) { throw error; }
 };
 
-export const generateCharacterSheet = async (options: LogoOptions): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const generateCharacterSheet = async (options: LogoOptions, apiKey?: string): Promise<string> => {
+  const ai = getClient(apiKey);
   const isPro = options.model === 'gemini-3-pro-image-preview';
 
   // Logic to handle user-defined views or pose-only focus
@@ -199,11 +206,11 @@ export const generateCharacterSheet = async (options: LogoOptions): Promise<stri
     const response = await ai.models.generateContent({
       model: options.model,
       contents: { parts },
-      config: { 
-        imageConfig: { 
-          ...(isPro ? { imageSize: options.resolution } : {}), 
-          aspectRatio: "1:1" 
-        } 
+      config: {
+        imageConfig: {
+          ...(isPro ? { imageSize: options.resolution } : {}),
+          aspectRatio: "1:1"
+        }
       },
     });
     const data = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;

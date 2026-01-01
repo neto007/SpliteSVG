@@ -35,10 +35,7 @@ export const LogoExtractor: React.FC = () => {
   const [mode] = useState<"birefnet">("birefnet"); // Fixed mode
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [viewerName, setViewerName] = useState<string>("");
-  const [birefnetUrl, setBirefnetUrl] = useState<string>(() => {
-    const host = typeof window !== "undefined" && window.location?.hostname ? window.location.hostname : "localhost";
-    return `http://${host}:8001`;
-  });
+  const [birefnetUrl, setBirefnetUrl] = useState<string>("/api");
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {

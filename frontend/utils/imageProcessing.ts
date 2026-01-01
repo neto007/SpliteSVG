@@ -190,15 +190,25 @@ export async function removeBackgroundBiRefNet(canvas: HTMLCanvasElement, server
 
 export async function checkBiRefNet(serverUrl: string): Promise<{ status: string; model: string }> {
   const base = serverUrl.trim();
+  // If base is relative (starts with /), don't remove trailing slash aggressively as it might be root
+  // Just ensure we strip specific endpoints if present to get the root
   const root = base.endsWith("/remove-bg") ? base.replace(/\/remove-bg$/, "") : base.replace(/\/$/, "");
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
   try {
     const r = await fetch(`${root}/health`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" } // Ensure we ask for JSON (though GET usually ignores)
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     if (!r.ok) throw new Error(`Status ${r.status}: ${r.statusText}`);
     return await r.json();
   } catch (e: any) {
-    throw new Error(`Falha na conexão com backend (${serverUrl}): ${e.message}`);
+    clearTimeout(timeoutId);
+    const msg = e.name === 'AbortError' ? "Tempo limite esgotado (Timeout)" : e.message;
+    throw new Error(`Falha na conexão com backend (${serverUrl}): ${msg}. Verifique se o backend está rodando em ${root}`);
   }
 }

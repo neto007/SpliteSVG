@@ -7,6 +7,7 @@ import { GeneratedImage, GeneratorStatus, LogoOptions } from './types';
 import { Gamepad2, Key, Info, ExternalLink, ShieldCheck } from 'lucide-react';
 import { Button } from './components/Button';
 import { LogoExtractor } from './components/LogoExtractor';
+import { ApiKeyModal } from './components/ApiKeyModal';
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<GeneratorStatus>(GeneratorStatus.IDLE);
@@ -16,20 +17,32 @@ const App: React.FC = () => {
   const [apiKeySelected, setApiKeySelected] = useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<LogoOptions['model']>('gemini-2.5-flash-image');
 
+  // API Key State
+  const [userApiKey, setUserApiKey] = useState<string>('');
+  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  // apiKeySelected now depends on userApiKey presence (or we keep it synced)
+
   useEffect(() => {
-    const checkKey = async () => {
-      if (window.aistudio?.hasSelectedApiKey) {
-        const hasKey = await window.aistudio.hasSelectedApiKey();
-        setApiKeySelected(hasKey);
-      }
-    };
-    checkKey();
+    // Load key from storage on mount
+    const stored = localStorage.getItem("GEMINI_API_KEY");
+    if (stored) {
+      setUserApiKey(stored);
+      setApiKeySelected(true);
+    }
   }, []);
 
-  const handleOpenKeySelection = async () => {
-    if (window.aistudio?.openSelectKey) {
-      await window.aistudio.openSelectKey();
+  const handleOpenKeySelection = () => {
+    // Open modal instead of window.aistudio
+    setIsKeyModalOpen(true);
+  };
+
+  const handleSaveKey = (key: string) => {
+    const trimmed = key.trim();
+    if (trimmed) {
+      localStorage.setItem("GEMINI_API_KEY", trimmed);
+      setUserApiKey(trimmed);
       setApiKeySelected(true);
+      setIsKeyModalOpen(false);
     }
   };
 
@@ -41,15 +54,15 @@ const App: React.FC = () => {
     }
 
     setStatus(GeneratorStatus.LOADING);
-    setCurrentImages([]); 
+    setCurrentImages([]);
     setErrorMessage(null);
-    
+
     try {
       let newImages: GeneratedImage[] = [];
 
       if (Array.isArray(options)) {
         const firstOpt = options[0];
-        const sheetUrl = await generateLogoCollection(options);
+        const sheetUrl = await generateLogoCollection(options, userApiKey);
 
         newImages = [{
           id: crypto.randomUUID(),
@@ -60,11 +73,11 @@ const App: React.FC = () => {
       } else {
         let imageUrl = "";
         if (options.mode === 'characterSheet') {
-          imageUrl = await generateCharacterSheet(options);
+          imageUrl = await generateCharacterSheet(options, userApiKey);
         } else {
-          imageUrl = await generateEsportsLogo(options);
+          imageUrl = await generateEsportsLogo(options, userApiKey);
         }
-        
+
         newImages = [{
           id: crypto.randomUUID(),
           url: imageUrl,
@@ -106,44 +119,50 @@ const App: React.FC = () => {
               <span className="text-[10px] text-gray-500 font-semibold tracking-wider">AI LOGO LAB</span>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
-             <div className="flex items-center gap-2 mr-4">
-               <button
-                 onClick={() => setView('generator')}
-                 className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${view === 'generator' ? 'bg-esport-accent text-black' : 'bg-gray-800 text-gray-300'}`}
-               >
-                 Generator
-               </button>
-               <button
-                 onClick={() => setView('extractor')}
-                 className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${view === 'extractor' ? 'bg-esport-accent text-black' : 'bg-gray-800 text-gray-300'}`}
-               >
-                 Extractor
-               </button>
-             </div>
-             <div className={`px-3 py-1 rounded-full border text-[10px] font-bold uppercase flex items-center gap-2 ${apiKeySelected ? 'border-esport-accent text-esport-accent' : 'border-gray-700 text-gray-500'}`}>
-               <ShieldCheck className="w-3 h-3" />
-               {apiKeySelected ? 'Chave Conectada' : 'Chave Pendente'}
-             </div>
-             <button onClick={handleOpenKeySelection} className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white" title="Configurar Chave API">
-               <Key className="w-4 h-4" />
-             </button>
+            <div className="flex items-center gap-2 mr-4">
+              <button
+                onClick={() => setView('generator')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${view === 'generator' ? 'bg-esport-accent text-black' : 'bg-gray-800 text-gray-300'}`}
+              >
+                Generator
+              </button>
+              <button
+                onClick={() => setView('extractor')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${view === 'extractor' ? 'bg-esport-accent text-black' : 'bg-gray-800 text-gray-300'}`}
+              >
+                Extractor
+              </button>
+            </div>
+            <div className={`px-3 py-1 rounded-full border text-[10px] font-bold uppercase flex items-center gap-2 ${apiKeySelected ? 'border-esport-accent text-esport-accent' : 'border-gray-700 text-gray-500'}`}>
+              <ShieldCheck className="w-3 h-3" />
+              {apiKeySelected ? 'Chave Conectada' : 'Chave Pendente'}
+            </div>
+            <button onClick={handleOpenKeySelection} className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white" title="Configurar Chave API">
+              <Key className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ApiKeyModal
+          isOpen={isKeyModalOpen}
+          onClose={() => setIsKeyModalOpen(false)}
+          onSave={handleSaveKey}
+          currentKey={userApiKey}
+        />
         {view === 'generator' ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-4">
-              <Controls 
-                onGenerate={handleGenerate} 
-                isGenerating={status === GeneratorStatus.LOADING} 
+              <Controls
+                onGenerate={handleGenerate}
+                isGenerating={status === GeneratorStatus.LOADING}
                 selectedModel={selectedModel}
                 onModelChange={setSelectedModel}
               />
-              
+
               {selectedModel === 'gemini-3-pro-image-preview' && !apiKeySelected && (
                 <div className="mt-4 p-4 rounded-lg bg-orange-950/20 border border-orange-900/40 text-[10px] text-orange-200 animate-pulse">
                   <p className="font-bold flex items-center gap-2 mb-1">
@@ -153,9 +172,9 @@ const App: React.FC = () => {
                 </div>
               )}
             </div>
-  
+
             <div className="lg:col-span-8">
-              <Preview 
+              <Preview
                 status={status}
                 currentImages={currentImages}
                 history={history}
