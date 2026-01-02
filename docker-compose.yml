@@ -4,9 +4,9 @@ services:
       context: ./backend
     container_name: splitesvg-backend
     ports:
-      - "8001:8001"
+      - "9007:9007"
     environment:
-      - PORT=8001
+      - PORT=9007
     volumes:
       - ./backend:/app
       - /app/__pycache__

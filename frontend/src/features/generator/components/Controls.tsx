@@ -32,13 +32,6 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [poseImage, setPoseImage] = useState<string | null>(null);
   const [gridSize, setGridSize] = useState<string>('2x2');
-  const [customViews, setCustomViews] = useState<string[]>([
-    'VISTA FRONTAL (NEUTRA)',
-    'VISTA LATERAL (PERFIL)',
-    'VISTA TRASEIRA (COSTAS)',
-    'DETALHE / CLOSE-UP (ROSTO)'
-  ]);
-  const [newView, setNewView] = useState('');
 
   // Styles Logic
   const [availableStyles, setAvailableStyles] = useState<string[]>([]);
@@ -83,16 +76,6 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
     reader.readAsDataURL(file);
   };
 
-  const addCustomView = () => {
-    if (newView.trim()) {
-      setCustomViews([...customViews, newView.trim().toUpperCase()]);
-      setNewView('');
-    }
-  };
-
-  const removeCustomView = (index: number) => {
-    setCustomViews(customViews.filter((_, i) => i !== index));
-  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -134,7 +117,7 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
       mode: activeTab,
       referenceImage: referenceImage || undefined,
       poseImage: poseImage || undefined,
-      customViews: activeTab === 'characterSheet' ? customViews : undefined,
+      customViews: undefined,
       gridSize: activeTab === 'characterSheet' ? gridSize : undefined
     };
 
@@ -304,34 +287,6 @@ export const Controls: React.FC<ControlsProps> = ({ onGenerate, isGenerating, se
               </div>
             </div>
 
-            {/* Custom Views Manager */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                <span>Vistas do Turnaround</span>
-                <span className="text-esport-accent">{customViews.length} Painéis</span>
-              </label>
-
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {customViews.map((view, idx) => (
-                  <div key={idx} className="flex items-center gap-1 px-2 py-0.5 bg-esport-black border border-gray-800 rounded text-[8px] font-bold text-gray-400">
-                    {view}
-                    <button type="button" onClick={() => removeCustomView(idx)} className="hover:text-red-500"><X className="w-2 h-2" /></button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newView}
-                  onChange={e => setNewView(e.target.value)}
-                  placeholder="Nova vista (ex: Pulo)"
-                  className="flex-1 bg-esport-black border border-gray-700 rounded p-1.5 text-[10px] outline-none focus:border-esport-accent"
-                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomView())}
-                />
-                <button type="button" onClick={addCustomView} className="p-1.5 bg-gray-800 rounded border border-gray-700 text-esport-accent hover:bg-esport-accent hover:text-black"><Plus className="w-3.5 h-3.5" /></button>
-              </div>
-            </div>
 
             <div className="space-y-3">
               <label className="text-[10px] font-bold text-gray-400 uppercase block tracking-widest">Descrição do Personagem</label>

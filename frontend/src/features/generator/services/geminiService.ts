@@ -89,7 +89,13 @@ export const generateLogoCollection = async (requests: LogoOptions[], apiKey?: s
   const cols = Math.ceil(Math.sqrt(count));
   const rows = Math.ceil(count / cols);
 
-  const subjectsList = requests.map((r) => `- Unique ${r.subject}`).join('\n');
+  const subjectsList = requests.map((r) => {
+    let item = `- Unique ${r.subject}`;
+    if (r.description && r.description.trim().length > 0) {
+      item += ` (MUST WRITE TEXT: "${r.description}")`;
+    }
+    return item;
+  }).join('\n');
   const first = requests[0];
   const isPro = first.model === 'gemini-3-pro-image-preview';
 
@@ -100,12 +106,12 @@ export const generateLogoCollection = async (requests: LogoOptions[], apiKey?: s
     ${subjectsList}
     
     CRITICAL CONSTRAINTS:
-    - ABSOLUTELY NO TEXT: Do not include any labels, numbers, tags, or names inside the image.
-    - NO CAPTIONS: Do not write "[LOGO #1]" or any other identifiers.
+    - IMAGE ONLY: Do not write labels like "Logo 1", "Fig A".
+    - TEXT HANDLING: If a specific text is requested in the item description, YOU MUST WRITE IT inside the logo. If no text is requested, DO NOT write anything.
     - VISUAL ONLY: Each cell in the grid should contain ONLY the logo icon.
     - STYLE: Consistent ${first.style} esports aesthetic across all items.
     - BACKGROUND: ${first.noBackground ? "SOLID WHITE" : "SOLID BLACK"}.
-    - CONSTRAINTS: NO REPETITIONS. Generate exactly ${count} distinct items without any surrounding text.
+    - CONSTRAINTS: NO REPETITIONS. Generate exactly ${count} distinct items.
   `;
 
   try {
@@ -124,9 +130,14 @@ export const generateCharacterSheet = async (options: LogoOptions, apiKey?: stri
   const ai = getClient(apiKey);
   const isPro = options.model === 'gemini-3-pro-image-preview';
 
+  const isSingleView = options.gridSize === '1x1';
+
   // Logic to handle user-defined views or pose-only focus
   let viewInstruction = "";
-  if (options.customViews && options.customViews.length > 0) {
+  if (isSingleView) {
+    viewInstruction = `- DRAWING FOCUS: SINGLE FULL-BODY MASTERPIECE. Do not create a grid. Do not show multiple angles. Just ONE perfect character render.`;
+    if (options.poseImage) viewInstruction += " Match the pose from Reference 2 exactly.";
+  } else if (options.customViews && options.customViews.length > 0) {
     viewInstruction = `- ANGLES TO DRAW: ${options.customViews.join(', ')}. Render these visually but DO NOT WRITE THEIR NAMES.`;
   } else if (options.poseImage) {
     viewInstruction = `- DRAWING FOCUS: Use the physical pose from Reference 2 for all illustrations. Create multiple renders of the character in that exact pose from different distances/angles (zoom, full body, detail).`;
@@ -134,7 +145,9 @@ export const generateCharacterSheet = async (options: LogoOptions, apiKey?: stri
     viewInstruction = `- DRAWING FOCUS: Multiple professional illustrations of the character.`;
   }
 
-  const gridInfo = options.gridSize ? `GRID LAYOUT: Exactly ${options.gridSize} matrix layout.` : "GRID LAYOUT: Multiple instances on a single canvas.";
+  const gridInfo = isSingleView
+    ? "GRID LAYOUT: NONE. Single massive character render. Center the character."
+    : (options.gridSize ? `GRID LAYOUT: Exactly ${options.gridSize} matrix layout.` : "GRID LAYOUT: Multiple instances on a single canvas.");
 
   const textPrompt = `
     TASK: Professional eSports Character Asset Pack (Visual Only).
@@ -144,6 +157,7 @@ export const generateCharacterSheet = async (options: LogoOptions, apiKey?: stri
     - NO HEADERS: No text like "Character Sheet", "VISTA FRONTAL", "FRONT", "SIDE", "LOGO", or any names.
     - CLEAN CANVAS: The entire image must contain only the character drawings and the solid background. 
     - If you are thinking of writing a label, DO NOT.
+    - IGNORE STYLE OF POSE REFERENCE: If a pose reference is provided, use ONLY its structure. Do not copy its colors, lighting, or art style.
 
     ARTISTIC SPECIFICATIONS:
     - SUBJECT: ${options.subject}
@@ -162,36 +176,53 @@ export const generateCharacterSheet = async (options: LogoOptions, apiKey?: stri
   const parts: any[] = [{ text: textPrompt }];
 
   if (options.referenceImage) {
-    const base64Data = options.referenceImage.split(',')[1] || options.referenceImage;
+    let mimeType = "image/png";
+    let data = options.referenceImage;
+    if (options.referenceImage.includes(',')) {
+      const [header, base64Data] = options.referenceImage.split(',');
+      mimeType = header.match(/:(.*?);/)?.[1] || "image/png";
+      data = base64Data.replace(/\s/g, '');
+    }
+
     parts.push({
       inlineData: {
-        data: base64Data,
-        mimeType: "image/png"
+        data: data,
+        mimeType: mimeType
       }
     });
     parts[0].text += `
       
-      [CHARACTER DESIGN SOURCE]: 
-      - Use this image for character IDENTITY (Face, Hair, Gear, Armor, Colors).
-      - Replicate this design exactly.
+      [MASTER VISUAL AUTHORITY - CHARACTER DESIGN]: 
+      - This image is the ABSOLUTE REFERENCE for the character's appearance.
+      - COPY EXACTLY: Face, Hair, Body Type, Armor, Clothing, Colors, Materials, Footwear, Hand Shape, Accessories.
+      - IGNORE TEXTURE/STYLE OF POSE REF: The pose reference is ONLY for the skeleton. All visual details must come from HERE.
+      - DETAIL LOCK: If the base character has boots, the output MUST have boots, even if the pose ref has bare feet.
     `;
   }
 
   if (options.poseImage) {
-    const base64Pose = options.poseImage.split(',')[1] || options.poseImage;
+    let mimeType = "image/png";
+    let data = options.poseImage;
+    if (options.poseImage.includes(',')) {
+      const [header, base64Pose] = options.poseImage.split(',');
+      mimeType = header.match(/:(.*?);/)?.[1] || "image/png";
+      data = base64Pose.replace(/\s/g, '');
+    }
     parts.push({
       inlineData: {
-        data: base64Pose,
-        mimeType: "image/png"
+        data: data,
+        mimeType: mimeType
       }
     });
     parts[0].text += `
       
-      [POSE SOURCE - MANNEQUIN ONLY]:
-      - Use ONLY the skeleton, posture, and physical stance of the body in this second image.
-      - !!! MANDATORY !!!: IGNORE all clothes, accessories, hair, and items from this second image.
-      - This image is a body-posture reference ONLY.
-      - Apply the identity from the CHARACTER DESIGN SOURCE onto this body posture.
+      [STRUCTURAL WIREFRAME ONLY - IGNORE STYLE]:
+      - TREAT THIS IMAGE AS A COLORLESS SKELETON/STICK-FIGURE.
+      - DO NOT COPY: The art style, colors, lighting, background, or rendering of this image.
+      - IGNORE ANATOMY DETAILS: Do not copy the foot shape, muscle definition, or hand style from this image.
+      - USE ONLY FOR BONE POSITION: Only copy the angles of the limbs.
+      - IGNORE PIXELS: Ignore the actual pixels found here, only look at the limb positions.
+      - !!! CRITICAL !!!: If this image is a sketch or photo, DO NOT make the result look like a sketch or photo. Keep the main style.
     `;
   }
 

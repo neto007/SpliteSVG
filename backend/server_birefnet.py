@@ -83,4 +83,4 @@ async def health():
     }
 
 if __name__ == "__main__":
-    uvicorn.run("server_birefnet:app", host="0.0.0.0", port=8001, reload=False)
+    uvicorn.run("server_birefnet:app", host="0.0.0.0", port=9007, reload=False)
